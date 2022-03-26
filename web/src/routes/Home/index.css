@@ -1,0 +1,72 @@
+@import url("//cdn.repository.webfont.com/webfonts/nomal/148341/32780/623d8c2ff629d80cd0a0b9e4.css");
+
+.analysis-wrapper .header {
+    color: #fff;
+    text-align: center;
+    padding: 24px 0;
+    background-color: rgb(13, 22, 52);
+}
+
+.analysis-wrapper .header h2 {
+    font-size: 48px;
+    color: #fff;
+    text-align: center;
+    letter-spacing: 4px;
+    font-weight: 600;
+}
+
+.analysis-wrapper .header .logout {
+    position: absolute;
+    right: 48px;
+    top: 54px;
+}
+
+/* Content */
+.analysis-wrapper .content {
+    display: flex;
+    background-color: rgb(13, 22, 52);
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+.analysis-wrapper .content .left,
+.analysis-wrapper .content .right {
+    flex-basis: 475px;
+    flex-shrink: 0;
+    margin-top: 18px;
+}
+
+.analysis-wrapper .content .middle {
+    flex-grow: 1;
+    margin: 0 16px;
+    border-left: 1px solid #999;
+    border-right: 1px solid #999;
+}
+
+.analysis-wrapper .content .middle .time {
+    font-family: DS-Digital, serif;
+    color: rgb(247, 193, 118);
+    line-height: 1.25;
+    font-size: 60px;
+    text-align: center;
+    backdrop-filter: blur(4px);
+    background: rgb(17 36 98);
+    border-radius: 6px;
+    margin: 16px 32px;
+    padding: 16px 0;
+    box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+    letter-spacing: 2px;
+}
+
+.analysis-wrapper .content .middle img {
+    display: block;
+    margin: 78px auto 0
+}
+
+.analysis-wrapper .content .right .echarts-for-react+.echarts-for-react {
+    margin-top: 32px;
+}
+
+.analysis-wrapper .content .left .echarts-for-react+.echarts-for-react {
+    margin-top: 32px;
+}
