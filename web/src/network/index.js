@@ -13,3 +13,8 @@ export const editUserData = (data) => ajax(BASE_URL + '/user/api/edit', data, 'P
 export const editPwdData = (data) => ajax(BASE_URL + '/user/api/reset', data, 'POST');
 // 5. 创建用户
 export const createNewUser = (data) => ajax(BASE_URL + '/user/api/add', data, 'POST');
+
+// 6. 上传文件
+export const uploadExcel = (data) => ajax(BASE_URL + '/bill/api/upload', data, 'POST');
+// 7. 账单列表
+export const getBillList = () => ajax(BASE_URL + '/bill/api/list');

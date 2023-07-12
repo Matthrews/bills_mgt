@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-mongoose.connect("mongodb://localhost/industry-analysis");
+mongoose.connect("mongodb://0.0.0.0/transsion");
 
 const userSchema = mongoose.Schema({
   // 用户名

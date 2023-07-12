@@ -1,16 +1,15 @@
 import * as constants from "./actionType"; // ES6
-import { getHomeData, getUserData, createNewUser } from "./../network";
+import { getBillList, getUserData, createNewUser } from "./../network";
 
 export const getHomeDataAction = () => {
   return (dispatch) => {
     // 请求网络数据
-    getHomeData()
+    getBillList()
       .then((res) => {
         if (res.status_code === 200) {
-          const homeData = res.result[0];
           dispatch({
             type: constants.INIT_HOME_DATA,
-            homeData,
+            homeData: res.result
           });
         }
       })

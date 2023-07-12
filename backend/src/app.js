@@ -1,7 +1,9 @@
 import express from "express";
 import config from "./config";
 // 1.引入路由的文件
+import indexRouter from "./../rests/index";
 import userRouter from "./../rests/user";
+import billRouter from "./../rests/bill";
 
 // 引入中间件
 import bodyParser from "./../middle_wares/body_parser";
@@ -15,6 +17,7 @@ const app = express();
 const PORT = 1688;
 
 // 3. 设置模板引擎
+app.set("view engine", "njk");
 nunjucks.configure(config.viewPath, {
   autoescape: true,
   express: app,
@@ -29,7 +32,9 @@ app.use("/node_modules", express.static(config.node_modules));
 app.use(bodyParser);
 
 // 5. 挂载路由容器
+app.use(indexRouter);
 app.use(userRouter);
+app.use(billRouter);
 
 // 6. 挂载错误中间件
 app.use(errorLog);

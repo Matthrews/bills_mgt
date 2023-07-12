@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-mongoose.connect("mongodb://localhost/industry-analysis");
+mongoose.connect("mongodb://0.0.0.0/transsion");
 
 const errorSchema = mongoose.Schema({
   // 错误名称

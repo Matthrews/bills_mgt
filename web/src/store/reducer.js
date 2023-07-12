@@ -1,7 +1,7 @@
 import * as constants from "./actionType";
 // 默认数据
 const defaultState = {
-  homeData: {},
+  homeData: [],
   userData: {},
   addCourseData: {
     // 课程名称

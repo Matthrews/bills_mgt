@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Excel Tool</title>
+  <link rel="stylesheet" href="view-source:https://bootswatch.com/cosmo/">
+  <link rel="stylesheet" href="https://bootswatch.com/4/cosmo/bootstrap.css">
+</head>
+
+<body>
+  <div class="fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+      <a class="navbar-brand" href="#">CSV</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor01"
+        aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+    </nav>
+  </div>
+
+  <div class="row" style="margin-top:125px;margin-left:40%; margin-right:10%; width: fit-content;">
+    <div class="lg-6">
+      <div class="card border-danger mb-3" style="max-width: 20rem;">
+        <div class="card-header">Upload Excel File</div>
+        <div class="card-body">
+          <form action="/" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+              <label for="excel">BrowseFile</label><input type="file" class="form-control" name="excel"
+                required><br><br>
+              <input type="submit" value="submit">
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <hr />
+
+  <%if(result.length>0){%>
+    <table class="table table-hover" border="1">
+      <caption>Transsion bill summary</caption>
+      <thead>
+        <tr>
+          <th>Col-1</th>
+          <th>Col-2</th>
+          <th>Col-3</th>
+          <th>Col-4</th>
+          <th>Col-5</th>
+          <th>Col-6</th>
+          <th>Col-7</th>
+          <th>Col-8</th>
+          <th>Col-9</th>
+          <th>Col-10</th>
+          <th>Col-11</th>
+          <th>Col-12</th>
+          <th>Col-13</th>
+          <th>Col-14</th>
+          <th>Col-15</th>
+          <th>Col-16</th>
+          <th>Col-17</th>
+          <th>Col-18</th>
+          <th>Col-19</th>
+          <th>Col-20</th>
+          <th>Col-21</th>
+          <th>Col-22</th>
+          <th>Col-23</th>
+          <th>Col-24</th>
+          <th>Col-25</th>
+          <th>Col-26</th>
+          <th>Col-27</th>
+          <th>Col-28</th>
+          <th>Col-29</th>
+          <th>Col-30</th>
+          <th>Col-31</th>
+          <th>Col-32</th>
+          <th>Col-33</th>
+          <th>Col-34</th>
+          <th>Col-35</th>
+        </tr>
+      </thead>
+      <tbody>
+        <%for(var x=0;x < result.length;x++){%>
+          <tr>
+            <td>
+              <%= result[x].occuring_date %>
+            </td>
+            <td>
+              <%= result[x].financial_unit %>
+            </td>
+            <td>
+              <%= result[x].id %>
+            </td>
+            <td>
+              <%= result[x].owner_id %>
+            </td>>
+            <td>
+              <%= result[x].owner_account %>
+            </td>>
+            <td>
+              <%= result[x].product_code %>
+            </td>>
+            <td>
+              <%= result[x].product_name %>
+            </td>>
+            <td>
+              <%= result[x].product_detail_cod %>
+            </td>>,
+            <td>
+              <%= result[x].product_detail %>
+            </td>>
+            <td>
+              <%= result[x].business_type %>
+            </td>>
+            <td>
+              <%= result[x].fee_type %>
+            </td>>
+            <td>
+              <%= result[x].service_time %>
+            </td>>
+            <td>
+              <%= result[x].time_unit %>
+            </td>>
+            <td>
+              <%= result[x].bill_type %>
+            </td>>
+            <td>
+              <%= result[x].charge_type %>
+            </td>>
+            <td>
+              <%= result[x].instance_id %>
+            </td>>
+            <td>
+              <%= result[x].instance_name %>
+            </td>>
+            <td>
+              <%= result[x].resource_group %>
+            </td>>
+            <td>
+              <%= result[x].instance_tag %>
+            </td>>
+            <td>
+              <%= result[x].instance_conf %>
+            </td>>
+            <td>
+              <%= result[x].instance_schema %>
+            </td>>
+            <td>
+              <%= result[x].e_ip %>
+            </td>>
+            <td>
+              <%= result[x].private_ip %>
+            </td>>
+            <td>
+              <%= result[x].region %>
+            </td>>
+            <td>
+              <%= result[x].zoom %>
+            </td>>
+            <td>
+              <%= result[x].official_price %>
+            </td>>
+            <td>
+              <%= result[x].bonus_price %>
+            </td>>
+            <td>
+              <%= result[x].coupon %>
+            </td>>
+            <td>
+              <%= result[x].amount_payable %>
+            </td>>
+            <td>
+              <%= result[x].cash_payment %>
+            </td>>
+            <td>
+              <%= result[x].voucher %>
+            </td>>
+            <td>
+              <%= result[x].payment_in_deposit %>
+            </td>>
+            <td>
+              <%= result[x].fee_owed %>
+            </td>>
+            <td>
+              <%= result[x].currency %>
+            </td>>
+            <td>
+              <%= result[x].credit_line_refund %>
+            </td>>
+          </tr>
+          <%}%>
+      </tbody>
+    </table>
+    <%}%>
+
+      <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+        integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+        crossorigin="anonymous"></script>
+      <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+        crossorigin="anonymous"></script>
+      <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+        integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>

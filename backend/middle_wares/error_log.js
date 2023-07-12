@@ -1,4 +1,4 @@
-import Error_log from './../models/Error'
+import Error_log from "./../models/Error";
 
 export default (errLog, req, res, next) => {
   const error_log = new Error_log({
@@ -13,8 +13,8 @@ export default (errLog, req, res, next) => {
   error_log.save((err, result) => {
     res.json({
       err_code: 500,
-      result: '服务器内部错误!',
-      message: errLog.message
+      result: "服务器内部错误!",
+      message: errLog.message,
     });
   });
-}
+};
