@@ -205,6 +205,7 @@ class Home extends Component {
           field: "amount_payable",
           filter: true,
           sortable: true,
+          sort: "desc",
           headerName: "应付金额",
         },
         // 现金支付
