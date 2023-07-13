@@ -5,6 +5,7 @@
   "dependencies": {
     "ag-grid-community": "^29.0.0",
     "ag-grid-react": "^29.0.0",
+    "antd": "^3.26.20",
     "axios": "^0.25.0",
     "crypto-js": "^4.1.1",
     "echarts": "^4.1.0",

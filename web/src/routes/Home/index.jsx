@@ -5,6 +5,9 @@ import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import "./index.css";
+import { Select, Divider, Button, Input, Statistic, Alert } from "antd";
+
+const { Option } = Select;
 
 class Home extends Component {
   constructor(props) {
@@ -252,7 +255,37 @@ class Home extends Component {
 
   render() {
     const { homeData = [] } = this.props;
-    const { popupParent, defaultColDef, columnDefs } = this.state;
+    const { popupParent, defaultColDef, columnDefs, total, msg } = this.state;
+
+    let instanceTagList = [],
+      groupList = [];
+    homeData.forEach((element) => {
+      instanceTagList.push(element.instance_tag);
+      groupList.push(element.resource_group);
+    });
+
+    let normalized = [];
+    instanceTagList
+      .map((v) => (typeof v !== "string" || v === "-" ? "EMPTY" : v.split(";")))
+      .forEach((v) => {
+        normalized = normalized.concat(v);
+      });
+
+    instanceTagList = Array.from(new Set(normalized));
+    groupList = Array.from(new Set(groupList));
+
+    const instanceTagChildren = [],
+      groupListChildren = [];
+    for (let i = 0; i < instanceTagList.length; i++) {
+      const ele = instanceTagList[i];
+      instanceTagChildren.push(<Option key={ele}>{ele}</Option>);
+    }
+
+    for (let i = 0; i < groupList.length; i++) {
+      const ele = groupList[i];
+      groupListChildren.push(<Option key={ele}>{ele}</Option>);
+    }
+
     return (
       <div className="analysis-wrapper">
         <div className="header">
@@ -270,21 +303,55 @@ class Home extends Component {
           </a>
         </div>
         <div className="content">
-          <div className="tool-wrapper d-flex">
-            <input
-              style={{ maxWidth: 200 }}
-              class="form-control me-sm-2"
-              type="search"
-              placeholder="Search"
-              onChange={(e) => this.onSearch(e)}
-            />
-            <button
-              type="button"
-              class="btn btxn-lg btn-primary"
-              onClick={() => this.onBtnExport()}
-            >
-              Export to CSV
-            </button>
+          <div className="tool-wrapper d-flex-column align-items-center">
+            <div className="d-flex my-sm-4">
+              <Input
+                style={{ maxWidth: 200 }}
+                class="form-control me-sm-2"
+                type="search"
+                placeholder="Fuzzy search"
+                onChange={(e) => this.onSearch(e)}
+              />
+              <Button type="primary" onClick={() => this.onBtnExport()}>
+                Export to CSV
+              </Button>
+            </div>
+
+            <div className="d-flex">
+              <Select
+                mode="multiple"
+                style={{ minWidth: 400, marginRight: 16 }}
+                placeholder="请选择实例标签"
+                onChange={(e) => this.handleChange(e, "instances")}
+              >
+                {instanceTagChildren}
+              </Select>
+
+              <Select
+                mode="multiple"
+                style={{ minWidth: 200 }}
+                placeholder="请选择资源组"
+                onChange={(e) => this.handleChange(e, "groups")}
+              >
+                {groupListChildren}
+              </Select>
+
+              <Button type="primary" onClick={() => this.caculateResult()}>
+                Get total fees
+              </Button>
+              <Divider type="vertical" style={{ height: "auto" }} />
+
+              {total ? (
+                <Statistic
+                  className="flex-fill"
+                  title="Total fees(CNY)"
+                  value={total}
+                  precision={2}
+                />
+              ) : (
+                <Alert message={msg} type="error" />
+              )}
+            </div>
           </div>
           <div
             id="gridContainer"
@@ -295,7 +362,6 @@ class Home extends Component {
               defaultColDef={defaultColDef}
               popupParent={popupParent}
               rowData={homeData}
-              enableRangeSelection={true}
               columnDefs={columnDefs}
               onGridReady={this.onGridReady}
             ></AgGridReact>
@@ -320,6 +386,82 @@ class Home extends Component {
 
   onSearch(e) {
     this.gridApi.setQuickFilter(e.target.value?.trim());
+  }
+
+  handleChange(value, key) {
+    this.setState({
+      ...this.state,
+      [key]: value,
+    });
+  }
+
+  caculateResult() {
+    const { instances, groups } = this.state;
+    const { homeData = [] } = this.props;
+    const s = Array.isArray(homeData) && homeData.length,
+      s1 = Array.isArray(instances) && instances.length,
+      s2 = Array.isArray(groups) && groups.length;
+    let total = 0,
+      finalData = [],
+      msg = [];
+    if (!s) {
+      msg = "账单数据查询失败!";
+      console.error("计算总计费出错：", msg);
+      this.setState({
+        ...this.state,
+        msg,
+      });
+      return;
+    }
+    if (s1 && s2) {
+      finalData = homeData
+        .filter(
+          (v) =>
+            !!instances.find((k) =>
+              this.formatString(v.instance_tag).includes(k.trim())
+            )
+        )
+        .filter(
+          (v) =>
+            !!groups.find((k) =>
+              this.formatString(v.resource_group).includes(k.trim())
+            )
+        );
+    } else if (s1) {
+      finalData = homeData.filter(
+        (v) =>
+          !!instances.find((k) =>
+            this.formatString(v.instance_tag).includes(k.trim())
+          )
+      );
+    } else if (s2) {
+      finalData = homeData.filter(
+        (v) =>
+          !!groups.find((k) =>
+            this.formatString(v.resource_group).includes(k.trim())
+          )
+      );
+    } else {
+      msg = "实例标签和资源组均不存在!";
+      console.error("计算总计费出错：", msg);
+    }
+
+    if (finalData.length === 0) {
+      msg = "未找到同时符合实例标签和资源组条件的记录!";
+      console.error("计算总计费出错：", msg);
+    }
+
+    total = finalData.reduce((acc, cur) => acc + cur.amount_payable, 0);
+    this.setState({
+      ...this.state,
+      total,
+      msg,
+    });
+  }
+
+  formatString(value) {
+    if (typeof value !== "string" || value === "-") return "EMPTY";
+    return value.trim();
   }
 }
 

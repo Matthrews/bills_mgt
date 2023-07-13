@@ -8,6 +8,7 @@ import ErrorPage from "./routes/ErrorPage";
 
 import * as constants from "./store/actionType";
 
+import "./style/global.css";
 import "./style/index.css";
 
 class App extends Component {
