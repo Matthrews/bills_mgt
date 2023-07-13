@@ -348,15 +348,15 @@ class Home extends Component {
                   value={total}
                   precision={2}
                 />
-              ) : (
-                <Alert message={msg} type="error" />
-              )}
+              ) : null}
+
+              {msg ? <Alert message={msg} type="error" /> : null}
             </div>
           </div>
           <div
             id="gridContainer"
             className="ag-theme-alpine"
-            style={{ height: "80vh", width: "100%" }}
+            style={{ height: "calc(100vh - 250px)", width: "100%" }}
           >
             <AgGridReact
               defaultColDef={defaultColDef}
@@ -403,7 +403,7 @@ class Home extends Component {
       s2 = Array.isArray(groups) && groups.length;
     let total = 0,
       finalData = [],
-      msg = [];
+      msg = "";
     if (!s) {
       msg = "账单数据查询失败!";
       console.error("计算总计费出错：", msg);
