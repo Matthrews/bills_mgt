@@ -314,7 +314,7 @@ class Home extends Component {
                 onChange={(e) => this.onSearch(e)}
               />
               <Button type="primary" onClick={() => this.onBtnExport()}>
-                Export to CSV
+                导出 Excel
               </Button>
             </div>
 
@@ -338,14 +338,14 @@ class Home extends Component {
               </Select>
 
               <Button type="primary" onClick={() => this.caculateResult()}>
-                Get total fees
+                点我计算总费用
               </Button>
               <Divider type="vertical" style={{ height: "auto" }} />
 
               {total ? (
                 <Statistic
                   className="flex-fill"
-                  title="Total fees(CNY)"
+                  title="总费用(人民币)"
                   value={total}
                   precision={2}
                 />
