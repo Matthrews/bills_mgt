@@ -256,6 +256,13 @@ class Advance extends Component {
           hide: true,
           headerName: "信用额度退款抵扣",
         },
+        // 业务
+        {
+          field: "bussinessType",
+          filter: true,
+          sortable: true,
+          headerName: "业务",
+        },
       ],
     };
     this.gridRef = React.createRef();
@@ -272,6 +279,8 @@ class Advance extends Component {
     let instanceTagList = [],
       groupList = [];
     homeData.forEach((element) => {
+      // 增加业务字段
+      element.bussinessType = element.resource_group !== '-' ? element.resource_group: element.instance_tag === '-' ? '请选择业务线': '';
       instanceTagList.push(element.instance_tag);
       groupList.push(element.resource_group);
     });
