@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { connect } from "react-redux";
 
 import Home from "./routes/Home";
+import Advance from "./routes/Advance";
 import Login from "./routes/Login";
 import ErrorPage from "./routes/ErrorPage";
 
@@ -35,6 +36,7 @@ class App extends Component {
             }
           />
           <Route path="/login" element={<Login />} />
+          <Route path="/advance" element={<Advance />} />
           <Route path="/" element={LayoutRouter} />
         </Routes>
       </BrowserRouter>

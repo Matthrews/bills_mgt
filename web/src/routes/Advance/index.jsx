@@ -10,7 +10,7 @@ import { Link } from 'react-router-dom'
 
 const { Option } = Select;
 
-class Home extends Component {
+class Advance extends Component {
   constructor(props) {
     super(props);
 
@@ -40,7 +40,7 @@ class Home extends Component {
         // 账号ID
         { field: "u_id", filter: true, sortable: true, headerName: "账号ID" },
         // 账号
-        { field: "id", filter: true, sortable: true, headerName: "账号" },
+        { field: "id", filter: true, sortable: true, hide: true, headerName: "账号" },
         // Owner账号ID
         {
           field: "owner_id",
@@ -53,6 +53,7 @@ class Home extends Component {
           field: "owner_account",
           filter: true,
           sortable: true,
+          hide: true,
           headerName: "Owner账号",
         },
         // 产品Code
@@ -88,6 +89,7 @@ class Home extends Component {
           field: "business_type",
           filter: true,
           sortable: true,
+          hide: true,
           headerName: "业务类型",
         },
         // 消费类型
@@ -185,6 +187,7 @@ class Home extends Component {
           field: "official_price",
           filter: true,
           sortable: true,
+          hide: true,
           headerName: "官网价",
         },
         // 优惠金额
@@ -192,6 +195,7 @@ class Home extends Component {
           field: "bonus_price",
           filter: true,
           sortable: true,
+          hide: true,
           headerName: "优惠金额",
         },
         // 优惠券抵扣
@@ -199,6 +203,7 @@ class Home extends Component {
           field: "coupon",
           filter: true,
           sortable: true,
+          hide: true,
           headerName: "优惠券抵扣",
         },
         // 应付金额
@@ -214,6 +219,7 @@ class Home extends Component {
           field: "cash_payment",
           filter: true,
           sortable: true,
+          hide: true,
           headerName: "现金支付",
         },
         // 代金券抵扣
@@ -221,6 +227,7 @@ class Home extends Component {
           field: "voucher",
           filter: true,
           sortable: true,
+          hide: true,
           headerName: "代金券抵扣",
         },
         // 储值卡支付金额
@@ -228,6 +235,7 @@ class Home extends Component {
           field: "payment_in_deposit",
           filter: true,
           sortable: true,
+          hide: true,
           headerName: "储值卡支付金额",
         },
         // 欠费金额
@@ -235,15 +243,17 @@ class Home extends Component {
           field: "fee_owed",
           filter: true,
           sortable: true,
+          hide: true,
           headerName: "欠费金额",
         },
         // 币种
-        { field: "currency", filter: true, sortable: true, headerName: "币种" },
+        { field: "currency", filter: true, sortable: true, hide: true, headerName: "币种" },
         // 信用额度退款抵扣
         {
           field: "credit_line_refund",
           filter: true,
           sortable: true,
+          hide: true,
           headerName: "信用额度退款抵扣",
         },
       ],
@@ -257,7 +267,7 @@ class Home extends Component {
 
   render() {
     const { homeData = [] } = this.props;
-    const { popupParent, defaultColDef, columnDefs, total, msg } = this.state;
+    const { popupParent, defaultColDef, columnDefs, total, msg, status, homeDataModified = [] } = this.state;
 
     let instanceTagList = [],
       groupList = [];
@@ -273,7 +283,12 @@ class Home extends Component {
         normalized = normalized.concat(v);
       });
 
-    instanceTagList = Array.from(new Set(normalized));
+    let normalized_2 = []
+    normalized.filter(v => v !== 'EMPTY').map(v => v.trim()).forEach(t => {
+      normalized_2 = normalized_2.concat(t.includes(' ') ? t.split(' ')[0]: t)
+    })
+
+    instanceTagList = Array.from(new Set(normalized_2));
     groupList = Array.from(new Set(groupList));
 
     const instanceTagChildren = [],
@@ -303,7 +318,7 @@ class Home extends Component {
           >
             退出登录
           </a>
-          <Link className="logout" style={{ right: 120 }} to="/advance"> 高级表单 </Link>
+          <Link className="logout" style={{ right: 120 }} to="/"> 返回 </Link>
         </div>
         <div className="content">
           <div className="tool-wrapper d-flex-column align-items-center">
@@ -324,23 +339,17 @@ class Home extends Component {
               <Select
                 mode="multiple"
                 style={{ minWidth: 400, marginRight: 16 }}
-                placeholder="请选择实例标签"
+                placeholder="请选择 KEY"
                 onChange={(e) => this.handleChange(e, "instances")}
               >
                 {instanceTagChildren}
               </Select>
 
-              <Select
-                mode="multiple"
-                style={{ minWidth: 200 }}
-                placeholder="请选择资源组"
-                onChange={(e) => this.handleChange(e, "groups")}
-              >
-                {groupListChildren}
-              </Select>
-
-              <Button type="primary" onClick={() => this.caculateResult()}>
-                点我计算总费用
+              <Button type="primary" onClick={() => this.appendColumns()}>
+                新增对应列
+              </Button>
+              <Button type="primary" onClick={() => this.resetColumns()}>
+                Reset
               </Button>
               <Divider type="vertical" style={{ height: "auto" }} />
 
@@ -364,7 +373,7 @@ class Home extends Component {
             <AgGridReact
               defaultColDef={defaultColDef}
               popupParent={popupParent}
-              rowData={homeData}
+              rowData={status === 'APPENDED' ? homeDataModified: homeData}
               columnDefs={columnDefs}
               onGridReady={this.onGridReady}
             ></AgGridReact>
@@ -395,6 +404,40 @@ class Home extends Component {
     this.setState({
       ...this.state,
       [key]: value,
+    });
+  }
+
+  appendColumns() {
+    const { instances, groups, columnDefs } = this.state;
+    const { homeData = [] } = this.props;
+    const keys = instances.map(v => v.replace('key:', ''));
+    const updatedColumnDefs = [...columnDefs].concat(keys.map(v => ({
+      field: v,
+      filter: true,
+      sortable: true,
+      headerName: v,
+      type: "dynamic"
+    })));
+    const homeDataModified = [...homeData]
+    keys.forEach(key => {
+      homeDataModified.forEach(data => {
+        data[key] = this.formatString(data.instance_tag).indexOf(key) > -1 ? this.getValueByKey(data, key): ''
+      })
+    })
+    this.setState({
+      ...this.state,
+      columnDefs: updatedColumnDefs,
+      status: "APPENDED",
+      homeDataModified,
+    });
+  }
+
+  resetColumns() {
+    const { homeData = [] } = this.props;
+    this.setState({
+      ...this.state,
+      columnDefs: this.state.columnDefs.filter(v => v.type !== 'dynamic'),
+      status: undefined,
     });
   }
 
@@ -466,6 +509,12 @@ class Home extends Component {
     if (typeof value !== "string" || value === "-") return "EMPTY";
     return value.trim();
   }
+
+  getValueByKey(data, key) {
+    const targetKVPair = this.formatString(data.instance_tag).split(';').map(v => v.trim()).find(v => v.indexOf(key) > -1)
+    if (!targetKVPair) return 'Exception'
+    return targetKVPair.split(' ')[1].replace('value:', '')
+  }
 }
 
 // get state
@@ -484,4 +533,4 @@ const mapDispatchToProps = (dispatch) => {
     },
   };
 };
-export default connect(mapStateToProps, mapDispatchToProps)(Home);
+export default connect(mapStateToProps, mapDispatchToProps)(Advance);

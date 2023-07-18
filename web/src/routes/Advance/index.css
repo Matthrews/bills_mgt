@@ -1,0 +1,50 @@
+@import url("//cdn.repository.webfont.com/webfonts/nomal/148341/32780/623d8c2ff629d80cd0a0b9e4.css");
+
+.analysis-wrapper .header {
+    color: #f60;
+    text-align: center;
+    padding-top: 24px;
+}
+
+.analysis-wrapper .header h2 {
+    font-size: 48px;
+    text-align: center;
+    letter-spacing: 4px;
+    font-weight: 600;
+}
+
+.analysis-wrapper .header .logout {
+    position: absolute;
+    right: 48px;
+    top: 54px;
+}
+
+/* Content */
+.analysis-wrapper .content {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+}
+
+.analysis-wrapper .content .tool-wrapper {
+    margin-bottom: 1rem;
+}
+
+.analysis-wrapper .content .tool-wrapper button {
+    margin-left: 6px;
+    padding: 0 6px;
+}
+
+.analysis-wrapper .content .left,
+.analysis-wrapper .content .right {
+    flex-basis: 475px;
+    flex-shrink: 0;
+    margin-top: 18px;
+}
+
+.analysis-wrapper .content .middle {
+    flex-grow: 1;
+    margin: 0 16px;
+    border-left: 1px solid #999;
+    border-right: 1px solid #999;
+}
