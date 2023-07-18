@@ -25,23 +25,26 @@
 ## 操作说明
 
 ```bash
-
-# 1. 安装依赖
-cd backend && npm install
+# 1. 启动工具服务
+cd util && npm install && npm run dev
+# 启动后访问：http://localhost:4600
 
 # 2. 启动后端服务
-npm run dev
+cd backend && npm install && npm run dev
+# 启动后访问：http://localhost:1688
 
-# 3. 安装依赖
-cd web && npm install
-
-# 4. 启动前端服务
-npm run start
+# 3. 启动前端
+cd web && npm install && npm run start
+# 启动后访问：http://localhost:3000
 ```
 
 详细请参考【操作步骤说明.docx】
 
 ## 项目目录说明
+
+- util    Excel 导入数据库服务
+- backend 后端服务， 业务 CRUD
+- web     前端页面
 
 ```tree
 industry-analysis-platform
@@ -84,5 +87,10 @@ industry-analysis-platform
     │   └───Error
     ├───rest
     │   └───user
+    └───views
+    util
+    ├───public
+    ├───middle_wares
+    ├───app.js
     └───views
 ```
