@@ -5,10 +5,11 @@ import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import "./index.css";
-import { Select, Divider, Button, Input, Statistic, Alert } from "antd";
+import { Select, Divider, Button, Input, Statistic, Alert, Typography, List } from "antd";
 import { Link } from 'react-router-dom'
 
 const { Option } = Select;
+const { Paragraph } = Typography;
 
 class Advance extends Component {
   constructor(props) {
@@ -312,6 +313,8 @@ class Advance extends Component {
       groupListChildren.push(<Option key={ele}>{ele}</Option>);
     }
 
+    const dataSource = groupList.filter(v => v !== '-').map(v => ({ title: v }))
+
     return (
       <div className="analysis-wrapper">
         <div className="header">
@@ -374,6 +377,23 @@ class Advance extends Component {
               {msg ? <Alert message={msg} type="error" /> : null}
             </div>
           </div>
+          <List
+              grid={{
+                gutter: 16,
+                xs: 1,
+                sm: 2,
+                md: 4,
+                lg: 4,
+                xl: 6,
+                xxl: 3,
+              }}
+              dataSource={dataSource}
+              renderItem={(item) => (
+                <List.Item>
+                  <Paragraph copyable>{ item.title }</Paragraph>
+                </List.Item>
+              )}
+            />
           <div
             id="gridContainer"
             className="ag-theme-alpine"
