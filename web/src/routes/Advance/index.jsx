@@ -358,10 +358,10 @@ class Advance extends Component {
               </Select>
 
               <Button type="primary" onClick={() => this.appendColumns()}>
-                新增对应列
+                新增业务
               </Button>
               <Button type="primary" onClick={() => this.resetColumns()}>
-                Reset
+                重置
               </Button>
               <Divider type="vertical" style={{ height: "auto" }} />
 
