@@ -7,9 +7,14 @@ export const getHomeDataAction = () => {
     getBillList()
       .then((res) => {
         if (res.status_code === 200) {
+          const data = res.result ?? []
+          data.forEach((element) => {
+            // 增加业务字段
+            element.bussinessType = element.resource_group !== '-' ? element.resource_group: element.instance_tag === '-' ? '请选择业务线': '';
+          });
           dispatch({
             type: constants.INIT_HOME_DATA,
-            homeData: res.result
+            homeData: data
           });
         }
       })

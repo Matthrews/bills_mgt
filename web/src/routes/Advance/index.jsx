@@ -36,6 +36,7 @@ class Advance extends Component {
           field: "financial_unit",
           filter: true,
           sortable: true,
+          hide: true,
           headerName: "财务单元",
         },
         // 账号ID
@@ -47,6 +48,7 @@ class Advance extends Component {
           field: "owner_id",
           filter: true,
           sortable: true,
+          hide: true,
           headerName: "Owner账号ID",
         },
         // Owner账号
@@ -62,6 +64,7 @@ class Advance extends Component {
           field: "product_code",
           filter: true,
           sortable: true,
+          hide: true,
           headerName: "产品Code",
         },
         // 产品
@@ -69,6 +72,7 @@ class Advance extends Component {
           field: "product_name",
           filter: true,
           sortable: true,
+          hide: true,
           headerName: "产品",
         },
         // 产品明细Code
@@ -76,6 +80,7 @@ class Advance extends Component {
           field: "product_detail_code",
           filter: true,
           sortable: true,
+          hide: true,
           headerName: "产品明细Code",
         },
         // 产品明细
@@ -98,6 +103,7 @@ class Advance extends Component {
           field: "fee_type",
           filter: true,
           sortable: true,
+          hide: true,
           headerName: "消费类型",
         },
         // 服务时长
@@ -105,6 +111,7 @@ class Advance extends Component {
           field: "service_time",
           filter: true,
           sortable: true,
+          hide: true,
           headerName: "服务时长",
         },
         // 时长单位
@@ -119,6 +126,7 @@ class Advance extends Component {
           field: "bill_type",
           filter: true,
           sortable: true,
+          hide: true,
           headerName: "账单类型",
         },
         // 计费方式
@@ -126,6 +134,7 @@ class Advance extends Component {
           field: "charge_type",
           filter: true,
           sortable: true,
+          hide: true,
           headerName: "计费方式",
         },
         // 实例ID
@@ -140,6 +149,7 @@ class Advance extends Component {
           field: "instance_name",
           filter: true,
           sortable: true,
+          hide: true,
           headerName: "实例昵称",
         },
         // 资源组
@@ -168,6 +178,7 @@ class Advance extends Component {
           field: "instance_schema",
           filter: true,
           sortable: true,
+          hide: true,
           headerName: "实例规格",
         },
         // 公网IP
@@ -177,6 +188,7 @@ class Advance extends Component {
           field: "private_ip",
           filter: true,
           sortable: true,
+          hide: true,
           headerName: "私网IP",
         },
         // 地域
@@ -188,6 +200,7 @@ class Advance extends Component {
           field: "official_price",
           filter: true,
           sortable: true,
+          hide: true,
           hide: true,
           headerName: "官网价",
         },
@@ -261,6 +274,7 @@ class Advance extends Component {
         {
           field: "bussinessType",
           filter: true,
+          pinned: "right",
           sortable: true,
           headerName: "业务",
         },
@@ -278,34 +292,39 @@ class Advance extends Component {
     const { popupParent, defaultColDef, columnDefs, total, msg, status, homeDataModified = [] } = this.state;
 
     let instanceTagList = [],
+      productDetailList = [],
       groupList = [];
     homeData.forEach((element) => {
-      // 增加业务字段
-      element.bussinessType = element.resource_group !== '-' ? element.resource_group: element.instance_tag === '-' ? '请选择业务线': '';
-      instanceTagList.push(element.instance_tag);
+      productDetailList.push(element.product_detail);
       groupList.push(element.resource_group);
     });
 
-    let normalized = [];
-    instanceTagList
-      .map((v) => (typeof v !== "string" || v === "-" ? "EMPTY" : v.split(";")))
-      .forEach((v) => {
-        normalized = normalized.concat(v);
+    let normalized_2 = [];
+    const normalized = this.getNormalizedTagList(homeData);
+    normalized
+      .filter((v) => v !== "EMPTY")
+      .map((v) => v.trim())
+      .forEach((t) => {
+        normalized_2 = normalized_2.concat(
+          t.includes(" ") ? t.split(" ")[0] : t
+        );
       });
 
-    let normalized_2 = []
-    normalized.filter(v => v !== 'EMPTY').map(v => v.trim()).forEach(t => {
-      normalized_2 = normalized_2.concat(t.includes(' ') ? t.split(' ')[0]: t)
-    })
-
+    productDetailList = Array.from(new Set(productDetailList));
     instanceTagList = Array.from(new Set(normalized_2));
     groupList = Array.from(new Set(groupList));
 
     const instanceTagChildren = [],
+      productDetailListChildren = [],
       groupListChildren = [];
     for (let i = 0; i < instanceTagList.length; i++) {
       const ele = instanceTagList[i];
       instanceTagChildren.push(<Option key={ele}>{ele}</Option>);
+    }
+
+    for (let i = 0; i < productDetailList.length; i++) {
+      const ele = productDetailList[i];
+      productDetailListChildren.push(<Option key={ele}>{ele}</Option>);
     }
 
     for (let i = 0; i < groupList.length; i++) {
@@ -357,6 +376,15 @@ class Advance extends Component {
                 {instanceTagChildren}
               </Select>
 
+              <Select
+                mode="default"
+                style={{ minWidth: 400, marginRight: 16 }}
+                placeholder="请选择产品"
+                onChange={(e) => this.handleChange(e, "product")}
+              >
+                {productDetailListChildren}
+              </Select>
+
               <Button type="primary" onClick={() => this.appendColumns()}>
                 新增业务
               </Button>
@@ -364,6 +392,10 @@ class Advance extends Component {
                 重置
               </Button>
               <Divider type="vertical" style={{ height: "auto" }} />
+
+              <Button type="primary" onClick={() => this.bulkUpdate()}>
+                空实例批量设置业务
+              </Button>
 
               {total ? (
                 <Statistic
@@ -377,23 +409,6 @@ class Advance extends Component {
               {msg ? <Alert message={msg} type="error" /> : null}
             </div>
           </div>
-          <List
-              grid={{
-                gutter: 16,
-                xs: 1,
-                sm: 2,
-                md: 4,
-                lg: 4,
-                xl: 6,
-                xxl: 3,
-              }}
-              dataSource={dataSource}
-              renderItem={(item) => (
-                <List.Item>
-                  <Paragraph copyable>{ item.title }</Paragraph>
-                </List.Item>
-              )}
-            />
           <div
             id="gridContainer"
             className="ag-theme-alpine"
@@ -430,6 +445,16 @@ class Advance extends Component {
   }
 
   handleChange(value, key) {
+    const { homeData = [] } = this.props;
+    if (key === 'product') {
+      this.setState({
+        ...this.state,
+        [key]: value,
+        status: "APPENDED",
+        homeDataModified: homeData.filter(v => v.product_detail.indexOf(value) > -1),
+      });
+    return
+    }
     this.setState({
       ...this.state,
       [key]: value,
@@ -468,6 +493,38 @@ class Advance extends Component {
       columnDefs: this.state.columnDefs.filter(v => v.type !== 'dynamic'),
       status: undefined,
     });
+  }
+
+  bulkUpdate() {
+    const { instances = [] } = this.state;
+    const { homeData = [] } = this.props;
+    const normalized = this.getNormalizedTagList(homeData);
+    this.setState({
+      ...this.state,
+      status: "APPENDED",
+      homeDataModified: homeData.filter((v) => {
+        if (v.bussinessType === "请选择业务线") {
+          v.bussinessType = this.getValueByKey_2(normalized, instances[0]);
+        }
+        return true;
+      }),
+    });
+  }
+
+  getNormalizedTagList(homeData = []) {
+    let instanceTagList = [];
+    homeData.forEach((element) => {
+      instanceTagList.push(element.instance_tag);
+    });
+
+    let normalized = [];
+    instanceTagList
+      .map((v) => (typeof v !== "string" || v === "-" ? "EMPTY" : v.split(";")))
+      .forEach((v) => {
+        normalized = normalized.concat(v);
+      });
+
+    return normalized;
   }
 
   caculateResult() {
