@@ -5,29 +5,11 @@ import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import "./index.css";
-import { Select, Divider, Button, Input, Modal, Table } from "antd";
+import { Select, Divider, Button, Input, Modal } from "antd";
 import { Link } from 'react-router-dom'
+import Stats from '../../components/Stats'
 
 const { Option } = Select;
-
-const columns = [
-  {
-    title: '产品名称',
-    dataIndex: 'productName',
-    key: 'productName',
-    render: (text) => <a>{text}</a>,
-  },
-  {
-    title: '占比',
-    dataIndex: 'ratio',
-    key: 'ratio',
-  },
-  {
-    title: '应付金额',
-    dataIndex: 'amountPayable',
-    key: 'amountPayable',
-  }
-]
 
 class Advance extends Component {
   constructor(props) {
@@ -438,7 +420,7 @@ class Advance extends Component {
           </div>
         </div>
         <Modal width={'75vw'} title="Basic Modal" visible={isModalOpen} onOk={this.handleOk} onCancel={this.handleCancel}>
-          <Table columns={columns} dataSource={ statsIndex === 1 ? stats_2: stats } />
+          <Stats dataSource={ statsIndex === 1 ? stats_2: stats } />
         </Modal>
       </div>
     );
