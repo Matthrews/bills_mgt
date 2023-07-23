@@ -308,7 +308,8 @@ class Advance extends Component {
 
   render() {
     const { homeData = [] } = this.props;
-    const { popupParent, defaultColDef, columnDefs, status, homeDataModified = [], isModalOpen, stats = [] } = this.state;
+    const { popupParent, defaultColDef, columnDefs, status, homeDataModified = [], 
+      isModalOpen, stats = [], stats_2 = [], statsIndex } = this.state;
 
     let normalized_2 = [];
     const normalized = this.getNormalizedTagList(homeData);
@@ -437,7 +438,7 @@ class Advance extends Component {
           </div>
         </div>
         <Modal width={'75vw'} title="Basic Modal" visible={isModalOpen} onOk={this.handleOk} onCancel={this.handleCancel}>
-          <Table columns={columns} dataSource={stats} />
+          <Table columns={columns} dataSource={ statsIndex === 1 ? stats_2: stats } />
         </Modal>
       </div>
     );
@@ -581,7 +582,6 @@ class Advance extends Component {
 
   getStatsByProduct() {
     const { homeData = [] } = this.props;
-    const { instances, groups, status, homeDataModified  } = this.state;
     const total = homeData.reduce((acc, cur) => acc + cur.amount_payable, 0);
     let stats = []
     const productDetailList = this.getNormalizedProductDetailList(homeData);
@@ -593,13 +593,60 @@ class Advance extends Component {
     this.setState({
       ...this.state,
       stats,
+      statsIndex: 0,
       isModalOpen: true
     })
   }
 
   getStatsByBussinessType() {
-    const { instances, groups, status, homeDataModified  } = this.state;
-    console.log('getStatsByBussinessType', this.state);
+    const { homeData = [] } = this.props;
+    const { homeDataModified = [], columnDefs  } = this.state;
+    const dynamicColumnFields = columnDefs.filter(v => v.type === 'dynamic').map(v => v.field)
+    const total = homeData.reduce((acc, cur) => acc + cur.amount_payable, 0);
+
+    // P1
+    homeDataModified.forEach(v => {
+      v.attrCount = [v.bussinessType !== ''].filter(Boolean).concat(dynamicColumnFields.map(k => v[k]).filter(Boolean)).length;
+    })
+
+    const map = new Map();
+    const updateMapByKey = (map, key, record) => {
+      const value = map.get(key)
+      if (Array.isArray(value)) {
+        map.set(key, value.concat(record))
+      } else {
+        map.set(key, [record])
+      }
+    }
+
+    // P2
+    homeDataModified.forEach(v => {
+      dynamicColumnFields.concat('bussinessType').forEach(columnField => {
+        const record = v;
+        const value = record[columnField]
+        if (value) {
+          if (map.has(value)) {
+            updateMapByKey(map, value, record)
+          } else {
+            map.set(value, [record])
+          }
+        }
+      })
+    })
+
+    // P3
+    const stats_2 = []
+    for (let [k , v] of map) {
+      const sum = v.reduce((acc, cur) => acc + cur.amount_payable / cur.attrCount, 0)
+      stats_2.push({ productName: k, ratio: ((sum / total) * 100).toFixed(2) + '%', amountPayable: sum.toFixed(2) })
+    }
+
+    this.setState({
+      ...this.state,
+      stats_2,
+      statsIndex: 1,
+      isModalOpen: true
+    })
   }
 
   handleOk = () => {
