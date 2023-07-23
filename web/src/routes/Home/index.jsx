@@ -307,7 +307,7 @@ class Home extends Component {
         </div>
         <div className="content">
           <div className="tool-wrapper d-flex-column align-items-center">
-            <div className="d-flex my-sm-4">
+            <div className="d-flex my-sm-2">
               <Input
                 style={{ maxWidth: 200 }}
                 class="form-control me-sm-2"

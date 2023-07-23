@@ -5,11 +5,29 @@ import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import "./index.css";
-import { Select, Divider, Button, Input, Statistic, Alert, Typography, List } from "antd";
+import { Select, Divider, Button, Input, Modal, Table } from "antd";
 import { Link } from 'react-router-dom'
 
 const { Option } = Select;
-const { Paragraph } = Typography;
+
+const columns = [
+  {
+    title: '产品名称',
+    dataIndex: 'productName',
+    key: 'productName',
+    render: (text) => <a>{text}</a>,
+  },
+  {
+    title: '占比',
+    dataIndex: 'ratio',
+    key: 'ratio',
+  },
+  {
+    title: '应付金额',
+    dataIndex: 'amountPayable',
+    key: 'amountPayable',
+  }
+]
 
 class Advance extends Component {
   constructor(props) {
@@ -279,6 +297,7 @@ class Advance extends Component {
           headerName: "业务",
         },
       ],
+      isModalOpen: false,
     };
     this.gridRef = React.createRef();
   }
@@ -289,15 +308,7 @@ class Advance extends Component {
 
   render() {
     const { homeData = [] } = this.props;
-    const { popupParent, defaultColDef, columnDefs, total, msg, status, homeDataModified = [] } = this.state;
-
-    let instanceTagList = [],
-      productDetailList = [],
-      groupList = [];
-    homeData.forEach((element) => {
-      productDetailList.push(element.product_detail);
-      groupList.push(element.resource_group);
-    });
+    const { popupParent, defaultColDef, columnDefs, status, homeDataModified = [], isModalOpen, stats = [] } = this.state;
 
     let normalized_2 = [];
     const normalized = this.getNormalizedTagList(homeData);
@@ -310,13 +321,11 @@ class Advance extends Component {
         );
       });
 
-    productDetailList = Array.from(new Set(productDetailList));
-    instanceTagList = Array.from(new Set(normalized_2));
-    groupList = Array.from(new Set(groupList));
+    const productDetailList = this.getNormalizedProductDetailList(homeData);
+    const instanceTagList = Array.from(new Set(normalized_2));
 
     const instanceTagChildren = [],
-      productDetailListChildren = [],
-      groupListChildren = [];
+      productDetailListChildren = [];
     for (let i = 0; i < instanceTagList.length; i++) {
       const ele = instanceTagList[i];
       instanceTagChildren.push(<Option key={ele}>{ele}</Option>);
@@ -326,13 +335,6 @@ class Advance extends Component {
       const ele = productDetailList[i];
       productDetailListChildren.push(<Option key={ele}>{ele}</Option>);
     }
-
-    for (let i = 0; i < groupList.length; i++) {
-      const ele = groupList[i];
-      groupListChildren.push(<Option key={ele}>{ele}</Option>);
-    }
-
-    const dataSource = groupList.filter(v => v !== '-').map(v => ({ title: v }))
 
     return (
       <div className="analysis-wrapper">
@@ -353,7 +355,7 @@ class Advance extends Component {
         </div>
         <div className="content">
           <div className="tool-wrapper d-flex-column align-items-center">
-            <div className="d-flex my-sm-4">
+          <div className="d-flex my-sm-2">
               <Input
                 style={{ maxWidth: 200 }}
                 class="form-control me-sm-2"
@@ -366,23 +368,15 @@ class Advance extends Component {
               </Button>
             </div>
 
-            <div className="d-flex">
+            {/* 新增业务 */}
+            <div className="d-flex my-sm-2">
               <Select
                 mode="multiple"
-                style={{ minWidth: 400, marginRight: 16 }}
+                style={{ minWidth: 320, marginRight: 16 }}
                 placeholder="请选择 KEY"
                 onChange={(e) => this.handleChange(e, "instances")}
               >
                 {instanceTagChildren}
-              </Select>
-
-              <Select
-                mode="default"
-                style={{ minWidth: 400, marginRight: 16 }}
-                placeholder="请选择产品"
-                onChange={(e) => this.handleChange(e, "product")}
-              >
-                {productDetailListChildren}
               </Select>
 
               <Button type="primary" onClick={() => this.appendColumns()}>
@@ -391,22 +385,41 @@ class Advance extends Component {
               <Button type="primary" onClick={() => this.resetColumns()}>
                 重置
               </Button>
+
               <Divider type="vertical" style={{ height: "auto" }} />
+              <Button type="primary" onClick={() => this.getStatsByProduct()}>
+                按产品统计
+              </Button>
+              <Button type="primary" onClick={() => this.getStatsByBussinessType()}>
+                按业务统计
+              </Button>
+            </div>
+            {/* 计算比重 */}
+            <div className="d-flex">
+              <Select
+                mode="default"
+                style={{ minWidth: 320, marginRight: 16 }}
+                placeholder="请选择 PRODUCT"
+                onChange={(e) => this.handleChange(e, "product")}
+              >
+                {productDetailListChildren}
+              </Select>
+
+              <Select
+                mode="default"
+                style={{ minWidth: 320, marginRight: 16 }}
+                placeholder="请选择 KEY"
+                onChange={(e) => this.handleChange(e, "instance")}
+              >
+                {instanceTagChildren}
+              </Select>
 
               <Button type="primary" onClick={() => this.bulkUpdate()}>
                 空实例批量设置业务
               </Button>
-
-              {total ? (
-                <Statistic
-                  className="flex-fill"
-                  title="总费用(人民币)"
-                  value={total}
-                  precision={2}
-                />
-              ) : null}
-
-              {msg ? <Alert message={msg} type="error" /> : null}
+              <Button type="primary" onClick={() => this.resetBulk()}>
+                重置
+              </Button>
             </div>
           </div>
           <div
@@ -423,6 +436,9 @@ class Advance extends Component {
             ></AgGridReact>
           </div>
         </div>
+        <Modal width={'75vw'} title="Basic Modal" visible={isModalOpen} onOk={this.handleOk} onCancel={this.handleCancel}>
+          <Table columns={columns} dataSource={stats} />
+        </Modal>
       </div>
     );
   }
@@ -446,12 +462,23 @@ class Advance extends Component {
 
   handleChange(value, key) {
     const { homeData = [] } = this.props;
+    const { homeDataModified = [], status } = this.state;
+    const data = !!status ?  homeDataModified: homeData;
     if (key === 'product') {
       this.setState({
         ...this.state,
         [key]: value,
         status: "APPENDED",
-        homeDataModified: homeData.filter(v => v.product_detail.indexOf(value) > -1),
+        homeDataModified: data.filter(v => v.product_detail.indexOf(value) > -1),
+      });
+    return
+    }
+    if (key === 'instance') {
+      this.setState({
+        ...this.state,
+        [key]: value,
+        status: "APPENDED",
+        homeDataModified: data.filter(v => this.formatString(v.instance_tag).indexOf(value) > -1),
       });
     return
     }
@@ -496,19 +523,24 @@ class Advance extends Component {
   }
 
   bulkUpdate() {
-    const { instances = [] } = this.state;
+    const { instance = '', product = '' } = this.state;
+    console.log('bulkUpdate', instance, product);
     const { homeData = [] } = this.props;
-    const normalized = this.getNormalizedTagList(homeData);
-    this.setState({
-      ...this.state,
-      status: "APPENDED",
-      homeDataModified: homeData.filter((v) => {
-        if (v.bussinessType === "请选择业务线") {
-          v.bussinessType = this.getValueByKey_2(normalized, instances[0]);
-        }
-        return true;
-      }),
-    });
+    // const normalized = this.getNormalizedTagList(homeData);
+    // this.setState({
+    //   ...this.state,
+    //   status: "APPENDED",
+    //   homeDataModified: homeData.filter((v) => {
+    //     if (v.bussinessType === "请选择业务线") {
+    //       v.bussinessType = this.getValueByKey_2(normalized, instances[0]);
+    //     }
+    //     return true;
+    //   }),
+    // });
+  }
+
+  resetBulk() {
+    console.log('resetBulk', this.state);
   }
 
   getNormalizedTagList(homeData = []) {
@@ -527,68 +559,13 @@ class Advance extends Component {
     return normalized;
   }
 
-  caculateResult() {
-    const { instances, groups } = this.state;
-    const { homeData = [] } = this.props;
-    const s = Array.isArray(homeData) && homeData.length,
-      s1 = Array.isArray(instances) && instances.length,
-      s2 = Array.isArray(groups) && groups.length;
-    let total = 0,
-      finalData = [],
-      msg = "";
-    if (!s) {
-      msg = "账单数据查询失败!";
-      console.error("计算总计费出错：", msg);
-      this.setState({
-        ...this.state,
-        msg,
-      });
-      return;
-    }
-    if (s1 && s2) {
-      finalData = homeData
-        .filter(
-          (v) =>
-            !!instances.find((k) =>
-              this.formatString(v.instance_tag).includes(k.trim())
-            )
-        )
-        .filter(
-          (v) =>
-            !!groups.find((k) =>
-              this.formatString(v.resource_group).includes(k.trim())
-            )
-        );
-    } else if (s1) {
-      finalData = homeData.filter(
-        (v) =>
-          !!instances.find((k) =>
-            this.formatString(v.instance_tag).includes(k.trim())
-          )
-      );
-    } else if (s2) {
-      finalData = homeData.filter(
-        (v) =>
-          !!groups.find((k) =>
-            this.formatString(v.resource_group).includes(k.trim())
-          )
-      );
-    } else {
-      msg = "实例标签和资源组均不存在!";
-      console.error("计算总计费出错：", msg);
-    }
-
-    if (finalData.length === 0) {
-      msg = "未找到同时符合实例标签和资源组条件的记录!";
-      console.error("计算总计费出错：", msg);
-    }
-
-    total = finalData.reduce((acc, cur) => acc + cur.amount_payable, 0);
-    this.setState({
-      ...this.state,
-      total,
-      msg,
+  getNormalizedProductDetailList(homeData = []) {
+    let productDetailList = [];
+    homeData.forEach((element) => {
+      productDetailList.push(element.product_detail);
     });
+
+    return Array.from(new Set(productDetailList));
   }
 
   formatString(value) {
@@ -600,6 +577,43 @@ class Advance extends Component {
     const targetKVPair = this.formatString(data.instance_tag).split(';').map(v => v.trim()).find(v => v.indexOf(key) > -1)
     if (!targetKVPair) return 'Exception'
     return targetKVPair.split(' ')[1].replace('value:', '')
+  }
+
+  getStatsByProduct() {
+    const { homeData = [] } = this.props;
+    const { instances, groups, status, homeDataModified  } = this.state;
+    const total = homeData.reduce((acc, cur) => acc + cur.amount_payable, 0);
+    let stats = []
+    const productDetailList = this.getNormalizedProductDetailList(homeData);
+    productDetailList.forEach(v => {
+      const items = homeData.filter(k => k.product_detail === v);
+      const amountPayable = items.reduce((acc, cur) => acc + cur.amount_payable, 0).toFixed(2);
+      stats.push({ productName: v, ratio: ((amountPayable / total) * 100).toFixed(2) + '%', amountPayable })
+    })
+    this.setState({
+      ...this.state,
+      stats,
+      isModalOpen: true
+    })
+  }
+
+  getStatsByBussinessType() {
+    const { instances, groups, status, homeDataModified  } = this.state;
+    console.log('getStatsByBussinessType', this.state);
+  }
+
+  handleOk = () => {
+    this.setState({
+      ...this.state,
+      isModalOpen: false
+    })
+  }
+
+  handleCancel = () => {
+    this.setState({
+      ...this.state,
+      isModalOpen: false
+    })
   }
 }
 
