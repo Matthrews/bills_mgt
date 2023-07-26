@@ -294,6 +294,7 @@ class Advance extends Component {
       isModalOpen, stats = [], stats_2 = [], statsIndex } = this.state;
 
     let normalized_2 = [];
+    let normalized_3 = [];
     const normalized = this.getNormalizedTagList(homeData);
     normalized
       .filter((v) => v !== "EMPTY")
@@ -302,20 +303,26 @@ class Advance extends Component {
         normalized_2 = normalized_2.concat(
           t.includes(" ") ? t.split(" ")[0] : t
         );
+        normalized_3 = normalized_3.concat(
+          t.includes(" ") ? t.split(" ")[1] : t
+        );
       });
 
     const productDetailList = this.getNormalizedProductDetailList(homeData);
     const instanceTagList = Array.from(new Set(normalized_2));
+    const valueList = Array.from(new Set(homeData.map(v => v.resource_group).concat(normalized_3))).filter(v => v !== '-');
 
-    const instanceTagChildren = [],
+    const instanceTagChildren = [], valueListChildren = [],
       productDetailListChildren = [];
-    for (let i = 0; i < instanceTagList.length; i++) {
-      const ele = instanceTagList[i];
+    for (const ele of instanceTagList) {
       instanceTagChildren.push(<Option key={ele}>{ele}</Option>);
     }
 
-    for (let i = 0; i < productDetailList.length; i++) {
-      const ele = productDetailList[i];
+    for (const ele of valueList) {
+      valueListChildren.push(<Option key={ele}>{ele}</Option>);
+    }
+
+    for (const ele of productDetailList) {
       productDetailListChildren.push(<Option key={ele}>{ele}</Option>);
     }
 
@@ -391,10 +398,10 @@ class Advance extends Component {
               <Select
                 mode="default"
                 style={{ minWidth: 320, marginRight: 16 }}
-                placeholder="请选择 KEY"
-                onChange={(e) => this.handleChange(e, "instance")}
+                placeholder="请选择 VALUE"
+                onChange={(e) => this.handleChange(e, "value")}
               >
-                {instanceTagChildren}
+                {valueListChildren}
               </Select>
 
               <Button type="primary" onClick={() => this.bulkUpdate()}>
@@ -444,26 +451,20 @@ class Advance extends Component {
   }
 
   handleChange(value, key) {
-    const { homeData = [] } = this.props;
-    const { homeDataModified = [], status } = this.state;
-    const data = !!status ?  homeDataModified: homeData;
     if (key === 'product') {
       this.setState({
         ...this.state,
         [key]: value,
-        status: "APPENDED",
-        homeDataModified: data.filter(v => v.product_detail.indexOf(value) > -1),
       });
-    return
+      this.gridApi.setQuickFilter(value);
+      return
     }
-    if (key === 'instance') {
+    if (key === 'value') {
       this.setState({
         ...this.state,
         [key]: value,
-        status: "APPENDED",
-        homeDataModified: data.filter(v => this.formatString(v.instance_tag).indexOf(value) > -1),
       });
-    return
+      return
     }
     this.setState({
       ...this.state,
@@ -472,7 +473,7 @@ class Advance extends Component {
   }
 
   appendColumns() {
-    const { instances, groups, columnDefs } = this.state;
+    const { instances, columnDefs } = this.state;
     const { homeData = [] } = this.props;
     const keys = instances.map(v => v.replace('key:', ''));
     const updatedColumnDefs = [...columnDefs].concat(keys.map(v => ({
@@ -506,20 +507,30 @@ class Advance extends Component {
   }
 
   bulkUpdate() {
-    const { instance = '', product = '' } = this.state;
-    console.log('bulkUpdate', instance, product);
     const { homeData = [] } = this.props;
-    // const normalized = this.getNormalizedTagList(homeData);
-    // this.setState({
-    //   ...this.state,
-    //   status: "APPENDED",
-    //   homeDataModified: homeData.filter((v) => {
-    //     if (v.bussinessType === "请选择业务线") {
-    //       v.bussinessType = this.getValueByKey_2(normalized, instances[0]);
-    //     }
-    //     return true;
-    //   }),
-    // });
+    const { product = '', value = '', status, homeDataModified = [] } = this.state;
+    if (status === 'APPENDED') {
+      homeDataModified.forEach(v => {
+        if (v.product_detail === product && v.bussinessType === '自定义业务线') {
+          v.bussinessType = value;
+        }
+      })
+      this.gridApi.refreshCells();
+      this.setState({
+        ...this.state,
+        homeDataModified
+      });
+    } else {
+      homeData.forEach(v => {
+        if (v.product_detail === product && v.bussinessType === '自定义业务线') {
+          v.bussinessType = value;
+        }
+      })
+      this.setState({
+        ...this.state,
+        homeData
+      });
+    }
   }
 
   resetBulk() {
