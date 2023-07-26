@@ -303,7 +303,8 @@ class Home extends Component {
           >
             退出登录
           </a>
-          <Link className="logout" style={{ right: 120 }} to="/advance"> 高级表单 </Link>
+          <Link className="logout" style={{ right: 120 }} to="/advance"> 自定义业务 </Link>
+          <Link className="logout" style={{ right: 210 }} to="/advance_ratio"> 自定义比重 </Link>
         </div>
         <div className="content">
           <div className="tool-wrapper d-flex-column align-items-center">

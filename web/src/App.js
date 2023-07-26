@@ -4,6 +4,7 @@ import { connect } from "react-redux";
 
 import Home from "./routes/Home";
 import Advance from "./routes/Advance";
+import AdvanceRatio from "./routes/AdvanceRatio";
 import Login from "./routes/Login";
 import ErrorPage from "./routes/ErrorPage";
 
@@ -37,6 +38,7 @@ class App extends Component {
           />
           <Route path="/login" element={<Login />} />
           <Route path="/advance" element={<Advance />} />
+          <Route path="/advance_ratio" element={<AdvanceRatio />} />
           <Route path="/" element={LayoutRouter} />
         </Routes>
       </BrowserRouter>
