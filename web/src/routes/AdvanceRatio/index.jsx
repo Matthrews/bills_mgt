@@ -300,7 +300,9 @@ class AdvanceRatio extends Component {
       isModalOpen: false,
       groups: [
         { value: '', ratio: '' }
-      ]
+      ],
+      homeDataCopy: [],
+      addedCount: 0
     };
   }
 
@@ -311,7 +313,7 @@ class AdvanceRatio extends Component {
   render() {
     const { homeData = [] } = this.props;
     const { popupParent, defaultColDef, columnDefs, status, homeDataModified = [], 
-      instances = [], groups = [] } = this.state;
+      instances = [], groups = [], addedCount } = this.state;
 
     let normalized_2 = [];
     let normalized_3 = [];
@@ -335,13 +337,6 @@ class AdvanceRatio extends Component {
     .concat(normalized_3.map(v => v.replace('value:', '')))))
     .filter(v => v !== '-');
 
-    // console.log('productDetailList', productDetailList);
-    // console.log('instanceTagList', instanceTagList);
-    // console.log('valueList', valueList);
-    console.log('render - 1', this.state);
-    console.log('render - 2', this.state.homeData);
-    console.log('render - 3', this.state.homeDataModified);
-
     const instanceTagChildren = [], valueListChildren = [],
       productDetailListChildren = [];
     for (const ele of instanceTagList) {
@@ -355,6 +350,8 @@ class AdvanceRatio extends Component {
     for (const ele of productDetailList) {
       productDetailListChildren.push(<Option key={ele}>{ele}</Option>);
     }
+
+    const rowCount = status === 'APPENDED' ? homeDataModified.length: homeData.length
 
     return (
       <div className="analysis-wrapper">
@@ -438,16 +435,23 @@ class AdvanceRatio extends Component {
             </div>
 
             {/* 计算比重 */}
-            <div className="d-flex">
+            <div className="d-flex position-relative" style={{ marginBottom: 16 }}>
               <Select
                 mode="default"
-                style={{ minWidth: 320, marginRight: 16 }}
+                style={{ minWidth: 320, marginRight: 16, height: '100%' }}
                 placeholder="请选择 PRODUCT"
+                con
                 onChange={(e) => this.handleChangeRatio(e, "product_ratio")}
               >
                 {productDetailListChildren}
               </Select>
 
+              {
+                rowCount ? <div className="position-absolute" style={{ top: 40, color: '#666', fontSize: 12, fontWeight: 'bold' }}>
+                  {["状态：", `现有 ${ rowCount } 行数据`, addedCount && `, 新增 ${ addedCount } 行数据`].filter(Boolean).join('')}
+                </div>: "暂无数据"
+              }
+              
               <div className="group-container">
                 { groups.map((group, index) => {
                   return <div className="d-flex" style={{ marginTop: index > 0 ? 8: 0}}>
@@ -529,7 +533,6 @@ class AdvanceRatio extends Component {
   }
 
   handleChange(value, key) {
-    console.log('handleChange', value, key);
     if (key === 'product') {
       if (value === '查看全量数据') value = ''
       this.setState({
@@ -547,14 +550,25 @@ class AdvanceRatio extends Component {
   }
 
   handleChangeRatio(value, key, index) {
-    const { groups = [] } = this.state;
+    const { homeData = [] } = this.props;
+    const { groups = [], homeDataCopy = [], actionType } = this.state;
     // product_ratio
     if (key === 'product_ratio') {
       if (value === '查看全量数据') value = ''
-      this.setState({
-        ...this.state,
-        [key]: value,
-      });
+      if (actionType === "UpdateRatio") {
+        this.setState({
+          ...this.state,
+          homeDataModified: homeDataCopy,
+          [key]: value,
+        });
+      } else {
+        this.setState({
+          ...this.state,
+          homeDataCopy: homeData,
+          [key]: value,
+        });
+      }
+      
       this.gridApi.setQuickFilter(value);
       return
     }
@@ -691,8 +705,8 @@ class AdvanceRatio extends Component {
 
   updateRatio() {
     const { homeData = [] } = this.props;
-    const { product_ratio, value_ratio, ratio, groups = [], status, homeDataModified = [] } = this.state;
-    // const rowCount = this.gridApi.getDisplayedRowCount();
+    const { product_ratio, value_ratio, ratio, groups = [], status, homeDataCopy = [], homeDataModified = [] } = this.state;
+    const rowCount = this.gridApi.getDisplayedRowCount();
     const finalGroups = groups.filter(v => v.ratio !== '' && v.value !== '');
     const total = finalGroups.reduce((acc, cur) => acc + Number(cur.ratio), 0);
     if (total !== 100) return message.warn('所有分组权重之和必须为100')
@@ -701,14 +715,19 @@ class AdvanceRatio extends Component {
       homeDataModified.forEach(v => {
         if (v.product_detail === product_ratio) {
           finalGroups.forEach(finalGroup => {
-            newData.push({ ...v, value_ratio: finalGroup.value, ratio: finalGroup.ratio })
+            newData.push({ ...v, value_ratio: finalGroup.value, ratio: finalGroup.ratio, referenceID: v._id })
           })
         }
       })
+      // Sync up to homeDataCopy
+      const homeDataCopy = this.getSynchronizedHomeData(newData)
       this.gridApi.refreshCells()
       this.setState({
         ...this.state,
         status: 'APPENDED',
+        actionType: "UpdateRatio",
+        homeDataCopy,
+        addedCount: rowCount * (finalGroups.length - 1),
         homeDataModified: newData
       });
     } else {
@@ -717,17 +736,35 @@ class AdvanceRatio extends Component {
       homeDataModified.forEach(v => {
         if (v.product_detail === product_ratio) {
           finalGroups.forEach(finalGroup => {
-            newData.push({ ...v, value_ratio: finalGroup.value, ratio: finalGroup.ratio })
+            newData.push({ ...v, value_ratio: finalGroup.value, ratio: finalGroup.ratio, referenceID: v._id })
           })
         }
       })
+      // Sync up to homeDataCopy
+      const homeDataCopy = this.getSynchronizedHomeData(newData)
       this.gridApi.refreshCells()
       this.setState({
         ...this.state,
         status: 'APPENDED',
+        actionType: "UpdateRatio",
+        addedCount: rowCount * (finalGroups.length - 1),
+        homeDataCopy,
         homeDataModified: newData
       });
     }
+  }
+
+  getSynchronizedHomeData(modifiedData = []) {
+    const { homeDataCopy = [] } = this.state;
+    const newData = []
+    homeDataCopy.forEach(v => {
+      if (modifiedData.find(k => k._id === v._id)) {
+        newData.push(...modifiedData.filter(k => k._id === v._id))
+      } else {
+        newData.push(v)
+      }
+    })
+    return newData;
   }
   
   clone() {
@@ -749,7 +786,8 @@ class AdvanceRatio extends Component {
   resetGroups() {
     this.setState({
       ...this.state,
-      groups: [{ value: '', ratio: '' }]
+      groups: [{ value: '', ratio: '' }],
+      addedCount: 0
     });
   }
 
