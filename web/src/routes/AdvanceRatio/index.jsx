@@ -5,9 +5,8 @@ import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import "./index.css";
-import { Select, Divider, Button, Input, Modal } from "antd";
+import { Select, Divider, Button, Input } from "antd";
 import { Link } from 'react-router-dom'
-import Stats from '../../components/Stats'
 import _ from "lodash"
 
 const { Option } = Select;
@@ -287,8 +286,6 @@ class AdvanceRatio extends Component {
       ],
       isModalOpen: false,
     };
-    this.gridRef = React.createRef();
-    this.keyRef = React.createRef();
   }
 
   UNSAFE_componentWillMount() {
@@ -298,7 +295,7 @@ class AdvanceRatio extends Component {
   render() {
     const { homeData = [] } = this.props;
     const { popupParent, defaultColDef, columnDefs, status, homeDataModified = [], 
-      isModalOpen, stats = [], stats_2 = [], statsIndex, instances = [] } = this.state;
+      instances = [] } = this.state;
 
     let normalized_2 = [];
     let normalized_3 = [];
@@ -376,7 +373,6 @@ class AdvanceRatio extends Component {
             {/* 新增业务 */}
             <div className="d-flex my-sm-2">
               <Select
-                ref={this.keyRef}
                 mode="multiple"
                 style={{ minWidth: 320, marginRight: 16 }}
                 placeholder="请选择 KEY"
@@ -393,14 +389,6 @@ class AdvanceRatio extends Component {
               <Button type="primary" onClick={() => this.resetColumns()}>
                 重置
               </Button>
-
-              {/* <Divider type="vertical" style={{ height: "auto" }} />
-              <Button type="primary" onClick={() => this.getStatsByProduct()}>
-                按产品统计
-              </Button>
-              <Button type="primary" onClick={() => this.getStatsByBussinessType()}>
-                按业务统计
-              </Button> */}
             </div>
             {/* 计算比重 */}
             <div className="d-flex">
@@ -436,6 +424,8 @@ class AdvanceRatio extends Component {
               <Button type="primary" onClick={() => this.resetUpdate()}>
                 重置
               </Button>
+
+              <Divider type="vertical" style={{ height: "auto" }} />
               {/* <Button type="primary" onClick={() => this.updateRatio()}>
                 更新对应权重
               </Button>
@@ -458,9 +448,6 @@ class AdvanceRatio extends Component {
             ></AgGridReact>
           </div>
         </div>
-        <Modal width={'75vw'} title="Basic Modal" visible={isModalOpen} onOk={this.handleOk} onCancel={this.handleCancel}>
-          <Stats dataSource={ statsIndex === 1 ? stats_2: stats } />
-        </Modal>
       </div>
     );
   }
@@ -493,13 +480,7 @@ class AdvanceRatio extends Component {
       this.gridApi.setQuickFilter(value);
       return
     }
-    if (key === 'value') {
-      this.setState({
-        ...this.state,
-        [key]: value,
-      });
-      return
-    }
+ 
     this.setState({
       ...this.state,
       [key]: value,
@@ -587,10 +568,6 @@ class AdvanceRatio extends Component {
     });
   }
 
-  resetBulk() {
-    console.log('resetBulk', this.state);
-  }
-  
   updateRatio() {
     const { homeData = [] } = this.props;
     const { value = '', ratio = 0, status, homeDataModified = [] } = this.state;
@@ -669,89 +646,6 @@ class AdvanceRatio extends Component {
     const targetKVPair = this.formatString(data.instance_tag).split(';').map(v => v.trim()).find(v => v.indexOf(key) > -1)
     if (!targetKVPair) return 'Exception'
     return targetKVPair.split(' ')[1].replace('value:', '')
-  }
-
-  getStatsByProduct() {
-    const { homeData = [] } = this.props;
-    const total = homeData.reduce((acc, cur) => acc + cur.amount_payable, 0);
-    let stats = []
-    const productDetailList = this.getNormalizedProductDetailList(homeData);
-    productDetailList.forEach(v => {
-      const items = homeData.filter(k => k.product_detail === v);
-      const amountPayable = items.reduce((acc, cur) => acc + cur.amount_payable, 0).toFixed(2);
-      stats.push({ productName: v, ratio: ((amountPayable / total) * 100).toFixed(2) + '%', amountPayable })
-    })
-    this.setState({
-      ...this.state,
-      stats,
-      statsIndex: 0,
-      isModalOpen: true
-    })
-  }
-
-  getStatsByBussinessType() {
-    const { homeData = [] } = this.props;
-    const { homeDataModified = [], columnDefs  } = this.state;
-    const dynamicColumnFields = columnDefs.filter(v => v.type === 'dynamic').map(v => v.field)
-    const total = homeData.reduce((acc, cur) => acc + cur.amount_payable, 0);
-
-    // P1
-    homeDataModified.forEach(v => {
-      v.attrCount = [v.bussinessType !== ''].filter(Boolean).concat(dynamicColumnFields.map(k => v[k]).filter(Boolean)).length;
-    })
-
-    const map = new Map();
-    const updateMapByKey = (map, key, record) => {
-      const value = map.get(key)
-      if (Array.isArray(value)) {
-        map.set(key, value.concat(record))
-      } else {
-        map.set(key, [record])
-      }
-    }
-
-    // P2
-    homeDataModified.forEach(v => {
-      dynamicColumnFields.concat('bussinessType').forEach(columnField => {
-        const record = v;
-        const value = record[columnField]
-        if (value) {
-          if (map.has(value)) {
-            updateMapByKey(map, value, record)
-          } else {
-            map.set(value, [record])
-          }
-        }
-      })
-    })
-
-    // P3
-    const stats_2 = []
-    for (let [k , v] of map) {
-      const sum = v.reduce((acc, cur) => acc + cur.amount_payable / cur.attrCount, 0)
-      stats_2.push({ productName: k, ratio: ((sum / total) * 100).toFixed(2) + '%', amountPayable: sum.toFixed(2) })
-    }
-
-    this.setState({
-      ...this.state,
-      stats_2,
-      statsIndex: 1,
-      isModalOpen: true
-    })
-  }
-
-  handleOk = () => {
-    this.setState({
-      ...this.state,
-      isModalOpen: false
-    })
-  }
-
-  handleCancel = () => {
-    this.setState({
-      ...this.state,
-      isModalOpen: false
-    })
   }
 }
 
