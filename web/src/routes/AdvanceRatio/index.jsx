@@ -5,11 +5,18 @@ import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import "./index.css";
-import { Select, Divider, Button, Input } from "antd";
+import { Select, Divider, Button, Input, Tooltip, message } from "antd";
 import { Link } from 'react-router-dom'
 import _ from "lodash"
 
 const { Option } = Select;
+
+// message 全局配置
+message.config({
+  top: 60,
+  duration: 2,
+  maxCount: 3,
+});
 
 class AdvanceRatio extends Component {
   constructor(props) {
@@ -269,6 +276,12 @@ class AdvanceRatio extends Component {
           hide: true,
           headerName: "信用额度退款抵扣",
         },
+        // VALUE
+        {
+          field: "value_ratio",
+          sortable: true,
+          headerName: "VALUE",
+        },
         // 权重
         {
           field: "ratio",
@@ -285,6 +298,9 @@ class AdvanceRatio extends Component {
         },
       ],
       isModalOpen: false,
+      groups: [
+        { value: '', ratio: '' }
+      ]
     };
   }
 
@@ -295,7 +311,7 @@ class AdvanceRatio extends Component {
   render() {
     const { homeData = [] } = this.props;
     const { popupParent, defaultColDef, columnDefs, status, homeDataModified = [], 
-      instances = [] } = this.state;
+      instances = [], groups = [] } = this.state;
 
     let normalized_2 = [];
     let normalized_3 = [];
@@ -319,10 +335,12 @@ class AdvanceRatio extends Component {
     .concat(normalized_3.map(v => v.replace('value:', '')))))
     .filter(v => v !== '-');
 
-    console.log('productDetailList', productDetailList);
-    console.log('instanceTagList', instanceTagList);
-    console.log('valueList', valueList);
-    console.log('render', this.state);
+    // console.log('productDetailList', productDetailList);
+    // console.log('instanceTagList', instanceTagList);
+    // console.log('valueList', valueList);
+    console.log('render - 1', this.state);
+    console.log('render - 2', this.state.homeData);
+    console.log('render - 3', this.state.homeDataModified);
 
     const instanceTagChildren = [], valueListChildren = [],
       productDetailListChildren = [];
@@ -359,7 +377,7 @@ class AdvanceRatio extends Component {
           <div className="tool-wrapper d-flex-column align-items-center">
           <div className="d-flex my-sm-2">
               <Input
-                style={{ maxWidth: 200 }}
+                style={{ maxWidth: 320, marginRight: 10 }}
                 class="form-control me-sm-2"
                 type="search"
                 placeholder="Fuzzy search"
@@ -374,7 +392,7 @@ class AdvanceRatio extends Component {
             <div className="d-flex my-sm-2">
               <Select
                 mode="multiple"
-                style={{ minWidth: 320, marginRight: 16 }}
+                style={{ minWidth: 320, marginRight: 10 }}
                 placeholder="请选择 KEY"
                 allowClear
                 value={instances}
@@ -390,8 +408,9 @@ class AdvanceRatio extends Component {
                 重置
               </Button>
             </div>
-            {/* 计算比重 */}
-            <div className="d-flex">
+
+            {/* 空实例批量设置业务 */}
+            <div className="d-flex my-sm-2">
               <Select
                 mode="default"
                 style={{ minWidth: 320, marginRight: 16 }}
@@ -410,34 +429,74 @@ class AdvanceRatio extends Component {
                 {valueListChildren}
               </Select>
 
-              {/* <Input
-                style={{ maxWidth: 200 }}
-                class="form-control me-sm-2"
-                type="input"
-                placeholder="请输入1～100之间的权重值"
-                onChange={(e) => this.handleChange(e.target.value, "ratio")}
-              /> */}
-
-              <Button type="primary" onClick={() => this.bulkUpdate()}>
+              <Button type="primary" onClick={() => this.bulkUpdate()} style={{ marginLeft: 0 }}>
                 空实例批量设置业务
               </Button>
               <Button type="primary" onClick={() => this.resetUpdate()}>
                 重置
               </Button>
+            </div>
 
+            {/* 计算比重 */}
+            <div className="d-flex">
+              <Select
+                mode="default"
+                style={{ minWidth: 320, marginRight: 16 }}
+                placeholder="请选择 PRODUCT"
+                onChange={(e) => this.handleChangeRatio(e, "product_ratio")}
+              >
+                {productDetailListChildren}
+              </Select>
+
+              <div className="group-container">
+                { groups.map((group, index) => {
+                  return <div className="d-flex" style={{ marginTop: index > 0 ? 8: 0}}>
+                    <Select
+                      mode="default"
+                      style={{ minWidth: 320, marginRight: 16 }}
+                      placeholder="请选择 VALUE"
+                      value={group.value || "请选择 VALUE 并分配权重"}
+                      onChange={(e) => this.handleChangeRatio(e, "value_ratio", index)}
+                    >
+                      {valueListChildren}
+                    </Select>
+
+                    <Input
+                      style={{ minWidth: 200 }}
+                      class="form-control me-sm-2"
+                      type="input"
+                      placeholder="请输入1～100之间的权重值"
+                      value={group.ratio}
+                      onPressEnter={(e) => this.handleAddGroup(index)}
+                      onChange={(e) => this.handleChangeRatio(e.target.value, "ratio", index)}
+                    />
+                    <Tooltip title="添加权重分组">
+                      <Button type="primary" shape="circle" icon="plus" onClick={() => this.handleAddGroup(index)} />
+                    </Tooltip>
+                    <Tooltip title="删除权重分组">
+                      <Button type="primary" shape="circle" icon="close" onClick={() => this.handleDeleteGroup(index)} />
+                    </Tooltip>
+                </div>
+                })}
+               
+              </div>
               <Divider type="vertical" style={{ height: "auto" }} />
-              {/* <Button type="primary" onClick={() => this.updateRatio()}>
-                更新对应权重
-              </Button>
-              <Button type="primary" onClick={() => this.clone()}>
-                克隆
-              </Button> */}
+              <Tooltip title="更新 PRODUCT 对应权重">
+                <Button type="primary" onClick={() => this.updateRatio()} style={{ marginLeft: 0 }}>
+                  更新对应权重
+                </Button>
+              </Tooltip>
+              <Tooltip title="重置分组已填项">
+                <Button type="primary" onClick={() => this.resetGroups()}>
+                  重置分组
+                </Button>
+              </Tooltip>
             </div>
           </div>
           <div
             id="gridContainer"
             className="ag-theme-alpine"
-            style={{ height: "calc(100vh - 250px)", width: "100%" }}
+            style={{ height: "calc(100vh - 280px)", width: "100%" }}
           >
             <AgGridReact
               defaultColDef={defaultColDef}
@@ -479,6 +538,51 @@ class AdvanceRatio extends Component {
       });
       this.gridApi.setQuickFilter(value);
       return
+    }
+ 
+    this.setState({
+      ...this.state,
+      [key]: value,
+    });
+  }
+
+  handleChangeRatio(value, key, index) {
+    const { groups = [] } = this.state;
+    // product_ratio
+    if (key === 'product_ratio') {
+      if (value === '查看全量数据') value = ''
+      this.setState({
+        ...this.state,
+        [key]: value,
+      });
+      this.gridApi.setQuickFilter(value);
+      return
+    }
+
+    // value_ratio
+    if (key === 'value_ratio') {
+      groups.forEach((group, groupIndex) => {
+        if (groupIndex === index) {
+          group.value = value;
+        }
+      })
+      this.setState({
+        ...this.state,
+        groups,
+      });
+    }
+
+    // ratio
+    if (key === 'ratio') {
+      groups.forEach((group, groupIndex) => {
+        if (groupIndex === index) {
+          group.ratio = value;
+        }
+      })
+      this.setState({
+        ...this.state,
+        groups,
+      });
     }
  
     this.setState({
@@ -568,32 +672,62 @@ class AdvanceRatio extends Component {
     });
   }
 
+  handleAddGroup(index) {
+    const { groups = [] } = this.state;
+    if (groups.filter(v => v.ratio === '' || v.value === '').length) return
+    this.setState({
+      ...this.state,
+      groups: groups.concat({ value: '', ratio: '' }),
+    });
+  }
+
+  handleDeleteGroup(index) {
+    const { groups = [] } = this.state;
+    this.setState({
+      ...this.state,
+      groups: groups.filter((_v, groupIndex) => groupIndex !== index),
+    });
+  }
+
   updateRatio() {
     const { homeData = [] } = this.props;
-    const { value = '', ratio = 0, status, homeDataModified = [] } = this.state;
+    const { product_ratio, value_ratio, ratio, groups = [], status, homeDataModified = [] } = this.state;
+    // const rowCount = this.gridApi.getDisplayedRowCount();
+    const finalGroups = groups.filter(v => v.ratio !== '' && v.value !== '');
+    const total = finalGroups.reduce((acc, cur) => acc + Number(cur.ratio), 0);
+    if (total !== 100) return message.warn('所有分组权重之和必须为100')
     if (status === 'APPENDED') {
-      homeDataModified.forEach(ele => {
-        if (ele.bussinessType === value) ele.ratio = ratio;
-      });
+      const newData = []
+      homeDataModified.forEach(v => {
+        if (v.product_detail === product_ratio) {
+          finalGroups.forEach(finalGroup => {
+            newData.push({ ...v, value_ratio: finalGroup.value, ratio: finalGroup.ratio })
+          })
+        }
+      })
       this.gridApi.refreshCells()
       this.setState({
         ...this.state,
         status: 'APPENDED',
-        homeDataModified
+        homeDataModified: newData
       });
     } else {
-      const homeDataModified = homeData;
-      homeDataModified.forEach(ele => {
-        if (ele.bussinessType === value) ele.ratio = ratio;
-      });
+      const homeDataModified = _.clone(homeData);
+      const newData = []
+      homeDataModified.forEach(v => {
+        if (v.product_detail === product_ratio) {
+          finalGroups.forEach(finalGroup => {
+            newData.push({ ...v, value_ratio: finalGroup.value, ratio: finalGroup.ratio })
+          })
+        }
+      })
       this.gridApi.refreshCells()
       this.setState({
         ...this.state,
         status: 'APPENDED',
-        homeDataModified
+        homeDataModified: newData
       });
     }
-    
   }
   
   clone() {
@@ -609,6 +743,13 @@ class AdvanceRatio extends Component {
       ...this.state,
       status: 'APPENDED',
       homeDataModified: newData
+    });
+  }
+
+  resetGroups() {
+    this.setState({
+      ...this.state,
+      groups: [{ value: '', ratio: '' }]
     });
   }
 
