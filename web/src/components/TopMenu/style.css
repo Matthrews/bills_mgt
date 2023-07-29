@@ -1,0 +1,16 @@
+.top-menu .logo {
+    display: inline-block;
+    position: absolute;
+    top: 9px;
+    right: 12px;
+}
+
+.ant-menu-dark, .ant-menu-dark .ant-menu-sub {
+    background: rgba(24, 144, 255, 0.2) !important
+}
+
+.ant-menu-dark .ant-menu-item, .ant-menu-dark .ant-menu-item-group-title, .ant-menu-dark .ant-menu-item > a {
+    color: rgba(0, 0, 0, 0.85) !important;
+    font-weight: 500;
+}
+

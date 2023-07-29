@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { connect } from "react-redux";
 
+import TopMenu from './components/TopMenu';
 import Home from "./routes/Home";
 import Advance from "./routes/Advance";
 import AdvanceRatio from "./routes/AdvanceRatio";
@@ -28,6 +29,7 @@ class App extends Component {
     );
     return (
       <BrowserRouter>
+        <TopMenu />
         <Routes>
           <Route
             exact
