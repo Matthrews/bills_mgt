@@ -8,6 +8,7 @@ import "./index.css";
 import { Select, Divider, Button, Input, Modal } from "antd";
 import { Link } from 'react-router-dom'
 import Stats from '../../components/Stats'
+import _ from "lodash"
 
 const { Option } = Select;
 
@@ -287,6 +288,7 @@ class AdvanceRatio extends Component {
       isModalOpen: false,
     };
     this.gridRef = React.createRef();
+    this.keyRef = React.createRef();
   }
 
   UNSAFE_componentWillMount() {
@@ -296,7 +298,7 @@ class AdvanceRatio extends Component {
   render() {
     const { homeData = [] } = this.props;
     const { popupParent, defaultColDef, columnDefs, status, homeDataModified = [], 
-      isModalOpen, stats = [], stats_2 = [], statsIndex } = this.state;
+      isModalOpen, stats = [], stats_2 = [], statsIndex, instances = [] } = this.state;
 
     let normalized_2 = [];
     let normalized_3 = [];
@@ -313,11 +315,17 @@ class AdvanceRatio extends Component {
         );
       });
 
-    const productDetailList = this.getNormalizedProductDetailList(homeData);
+    const productDetailList = this.getNormalizedProductDetailList(homeData)
+    productDetailList.unshift('查看全量数据');
     const instanceTagList = Array.from(new Set(normalized_2));
     const valueList = Array.from(new Set(homeData.map(v => v.resource_group)
     .concat(normalized_3.map(v => v.replace('value:', '')))))
     .filter(v => v !== '-');
+
+    console.log('productDetailList', productDetailList);
+    console.log('instanceTagList', instanceTagList);
+    console.log('valueList', valueList);
+    console.log('render', this.state);
 
     const instanceTagChildren = [], valueListChildren = [],
       productDetailListChildren = [];
@@ -368,9 +376,12 @@ class AdvanceRatio extends Component {
             {/* 新增业务 */}
             <div className="d-flex my-sm-2">
               <Select
+                ref={this.keyRef}
                 mode="multiple"
                 style={{ minWidth: 320, marginRight: 16 }}
                 placeholder="请选择 KEY"
+                allowClear
+                value={instances}
                 onChange={(e) => this.handleChange(e, "instances")}
               >
                 {instanceTagChildren}
@@ -411,23 +422,26 @@ class AdvanceRatio extends Component {
                 {valueListChildren}
               </Select>
 
-              <Input
+              {/* <Input
                 style={{ maxWidth: 200 }}
                 class="form-control me-sm-2"
                 type="input"
                 placeholder="请输入1～100之间的权重值"
                 onChange={(e) => this.handleChange(e.target.value, "ratio")}
-              />
+              /> */}
 
               <Button type="primary" onClick={() => this.bulkUpdate()}>
                 空实例批量设置业务
               </Button>
-              <Button type="primary" onClick={() => this.updateRatio()}>
+              <Button type="primary" onClick={() => this.resetUpdate()}>
+                重置
+              </Button>
+              {/* <Button type="primary" onClick={() => this.updateRatio()}>
                 更新对应权重
               </Button>
               <Button type="primary" onClick={() => this.clone()}>
                 克隆
-              </Button>
+              </Button> */}
             </div>
           </div>
           <div
@@ -469,7 +483,9 @@ class AdvanceRatio extends Component {
   }
 
   handleChange(value, key) {
+    console.log('handleChange', value, key);
     if (key === 'product') {
+      if (value === '查看全量数据') value = ''
       this.setState({
         ...this.state,
         [key]: value,
@@ -516,11 +532,11 @@ class AdvanceRatio extends Component {
   }
 
   resetColumns() {
-    const { homeData = [] } = this.props;
     this.setState({
       ...this.state,
       columnDefs: this.state.columnDefs.filter(v => v.type !== 'dynamic'),
       status: undefined,
+      instances: []
     });
   }
 
@@ -531,6 +547,7 @@ class AdvanceRatio extends Component {
       homeDataModified.forEach(v => {
         if (v.product_detail === product && v.bussinessType === '自定义业务线') {
           v.bussinessType = value;
+          v.bulkUpdated = true;
         }
       })
       this.gridApi.refreshCells();
@@ -539,16 +556,35 @@ class AdvanceRatio extends Component {
         homeDataModified
       });
     } else {
-      homeData.forEach(v => {
+      let dataSource = _.clone(homeData);
+      dataSource.forEach(v => {
         if (v.product_detail === product && v.bussinessType === '自定义业务线') {
           v.bussinessType = value;
+          v.bulkUpdated = true;
         }
       })
       this.setState({
         ...this.state,
-        homeData
+        status: "APPENDED",
+        homeDataModified: dataSource
       });
     }
+  }
+
+  resetUpdate() {
+    const { homeDataModified = [] } = this.state;
+    homeDataModified.forEach(v => {
+      if (v.bulkUpdated) {
+        v.bussinessType = '自定义业务线';
+        v.bulkUpdated = false;
+      }
+    })
+    this.gridApi.refreshCells();
+    this.setState({
+      ...this.state,
+      status: "APPENDED",
+      homeDataModified
+    });
   }
 
   resetBulk() {
