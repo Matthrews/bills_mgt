@@ -356,7 +356,7 @@ class AdvanceRatio extends Component {
     return (
       <div className="analysis-wrapper">
         <div className="header">
-          <h2>Transsion - AliCloud Bill </h2>
+          {/* <h2>Transsion - AliCloud Bill </h2> */}
           <a
             className="logout"
             href="https://www.bing.com"
@@ -368,7 +368,6 @@ class AdvanceRatio extends Component {
           >
             退出登录
           </a>
-          <Link className="logout" style={{ right: 120 }} to="/"> 返回 </Link>
         </div>
         <div className="content">
           <div className="tool-wrapper d-flex-column align-items-center">
@@ -377,7 +376,7 @@ class AdvanceRatio extends Component {
                 style={{ maxWidth: 320, marginRight: 10 }}
                 class="form-control me-sm-2"
                 type="search"
-                placeholder="Fuzzy search"
+                placeholder="全表搜索"
                 onChange={(e) => this.onSearch(e)}
               />
               <Button type="primary" onClick={() => this.onBtnExport()}>

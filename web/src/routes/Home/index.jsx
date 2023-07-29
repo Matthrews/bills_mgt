@@ -291,7 +291,7 @@ class Home extends Component {
     return (
       <div className="analysis-wrapper">
         <div className="header">
-          <h2>Transsion - AliCloud Bill </h2>
+          {/* <h2>Transsion - AliCloud Bill </h2> */}
           <a
             className="logout"
             href="https://www.bing.com"
@@ -303,17 +303,15 @@ class Home extends Component {
           >
             退出登录
           </a>
-          <Link className="logout" style={{ right: 120 }} to="/advance"> 自定义业务 </Link>
-          <Link className="logout" style={{ right: 210 }} to="/advance_ratio"> 自定义比重 </Link>
         </div>
         <div className="content">
           <div className="tool-wrapper d-flex-column align-items-center">
             <div className="d-flex my-sm-2">
               <Input
-                style={{ maxWidth: 200 }}
+                style={{ maxWidth: 320, marginRight: 10 }}
                 class="form-control me-sm-2"
                 type="search"
-                placeholder="Fuzzy search"
+                placeholder="全表搜索"
                 onChange={(e) => this.onSearch(e)}
               />
               <Button type="primary" onClick={() => this.onBtnExport()}>

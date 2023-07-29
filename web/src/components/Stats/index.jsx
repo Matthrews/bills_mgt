@@ -62,10 +62,10 @@ class Stats extends Component {
       <div className="stats-container">
         <div className="d-flex my-sm-2">
           <Input
-            style={{ maxWidth: 200 }}
+            style={{ maxWidth: 320 }}
             class="form-control me-sm-2"
             type="search"
-            placeholder="Fuzzy search"
+            placeholder="全表搜索"
             onChange={(e) => this.onSearch(e)}
           />
           <Button type="primary" className="mx-sm-2" onClick={() => this.onBtnExport()}>
