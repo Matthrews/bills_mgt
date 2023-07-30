@@ -276,18 +276,18 @@ class AdvanceRatio extends Component {
           hide: true,
           headerName: "信用额度退款抵扣",
         },
-        // VALUE
-        {
-          field: "value_ratio",
-          sortable: true,
-          headerName: "VALUE",
-        },
         // 权重
         {
           field: "ratio",
           sortable: true,
           headerName: "权重(百分比1~100)",
         },
+        // // VALUE
+        // {
+        //   field: "value_ratio",
+        //   sortable: true,
+        //   headerName: "VALUE",
+        // },
         // 业务
         {
           field: "bussinessType",
@@ -714,7 +714,7 @@ class AdvanceRatio extends Component {
       homeDataModified.forEach(v => {
         if (v.product_detail === product_ratio) {
           finalGroups.forEach(finalGroup => {
-            newData.push({ ...v, value_ratio: finalGroup.value, ratio: finalGroup.ratio, referenceID: v._id })
+            newData.push({ ...v, bussinessType: finalGroup.value, ratio: finalGroup.ratio, referenceID: v._id })
           })
         }
       })
@@ -735,7 +735,7 @@ class AdvanceRatio extends Component {
       homeDataModified.forEach(v => {
         if (v.product_detail === product_ratio) {
           finalGroups.forEach(finalGroup => {
-            newData.push({ ...v, value_ratio: finalGroup.value, ratio: finalGroup.ratio, referenceID: v._id })
+            newData.push({ ...v, bussinessType: finalGroup.value, ratio: finalGroup.ratio, referenceID: v._id })
           })
         }
       })
