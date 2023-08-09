@@ -15,11 +15,11 @@ function TopMenu({ location }) {
         <Menu.Item key="/">
           <Link to="/">首页</Link>
         </Menu.Item>
-        <Menu.Item key="/advance">
+        {/* <Menu.Item key="/advance">
           <Link to="/advance">自定义业务</Link>
-        </Menu.Item>
+        </Menu.Item> */}
         <Menu.Item key="/advance_ratio">
-          <Link to="/advance_ratio">自定义比重</Link>
+          <Link to="/advance_ratio">自定义表单</Link>
         </Menu.Item>
         {/* <Menu.Item key="/login">
           <Link to="/login">退出</Link>
