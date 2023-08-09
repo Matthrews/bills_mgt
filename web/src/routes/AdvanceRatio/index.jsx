@@ -538,7 +538,8 @@ class AdvanceRatio extends Component {
         ...this.state,
         [key]: value,
       });
-      this.gridApi.setQuickFilter(value);
+      this.filterByColumnAndSearchKey('product_detail', value)
+      // this.gridApi.setQuickFilter(value);
       return
     }
  
@@ -824,6 +825,21 @@ class AdvanceRatio extends Component {
     const targetKVPair = this.formatString(data.instance_tag).split(';').map(v => v.trim()).find(v => v.indexOf(key) > -1)
     if (!targetKVPair) return 'Exception'
     return targetKVPair.split(' ')[1].replace('value:', '')
+  }
+
+  filterByColumnAndSearchKey(columnKey, searchKey) {
+    // Get a reference to the filter instance
+    const filterInstance = this.gridApi.getFilterInstance(columnKey); 
+
+    // Set the filter model
+    filterInstance.setModel({
+        filterType: 'text',
+        type: 'contains',
+        filter: searchKey,
+    });
+
+    // Tell grid to run filter operation again
+    this.gridApi.onFilterChanged();
   }
 }
 
